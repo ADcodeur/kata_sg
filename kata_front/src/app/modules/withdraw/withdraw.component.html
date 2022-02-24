@@ -1,0 +1,20 @@
+<div class="module" id="withdraw">
+  <h2>WITHDRAW</h2>
+  <div class="form_wrapper">
+    <form [formGroup]="fg">
+      <input [formControl]="account" type="text" [placeholder]="ACCOUNT_PH" />
+      <input [formControl]="amount" type="number" [placeholder]="AMOUNT_PH" />
+      <button (click)="withdraw()" [disabled]="fg.invalid">Validate</button>
+    </form>
+  </div>
+  <div class="message_wrapper" *ngIf="message">
+    <p
+      [ngClass]="{
+        errorMessage: errorOccurs,
+        successMessage: !errorOccurs
+      }"
+    >
+      {{ message }}
+    </p>
+  </div>
+</div>

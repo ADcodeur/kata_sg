@@ -1,0 +1,32 @@
+<div class="module" id="history">
+  <h2>Transactions History</h2>
+  <div id="transaction_input_wrapper">
+    <form>
+      <input [formControl]="account" type="text" [placeholder]="ACCOUNT_PH" />
+      <button type="submit" (click)="getHistory()" [disabled]="account.invalid">
+        Validate
+      </button>
+    </form>
+  </div>
+  <div id="transaction_history_wrapper">
+    <div *ngIf="balance">
+      <p>Balance : {{ balance }}</p>
+    </div>
+    <div class="transaction_log" *ngFor="let item of transactionList">
+      <p>
+        Action : {{ item.action }} | Date : {{ getDate(item.date) }} | Amount :
+        {{ item.amount }}
+      </p>
+    </div>
+  </div>
+  <div class="message_wrapper" *ngIf="message">
+    <p
+      [ngClass]="{
+        errorMessage: errorOccurs,
+        successMessage: !errorOccurs
+      }"
+    >
+      {{ message }}
+    </p>
+  </div>
+</div>
