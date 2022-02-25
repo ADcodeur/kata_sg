@@ -1,5 +1,8 @@
 import { Injectable } from '@angular/core';
+import { Subject } from 'rxjs';
+import { NO_TRANSACTION } from '../shared/constants';
 import {
+  DataReponse,
   DepositCommand,
   HistoryCommand,
   HistoryDto,
@@ -11,21 +14,96 @@ import { ApiService } from './api.service';
   providedIn: 'root',
 })
 export class BusinessService {
+  depositResult: Subject<DataReponse<boolean>> = new Subject<
+    DataReponse<boolean>
+  >();
+  withdrawResult: Subject<DataReponse<boolean>> = new Subject<
+    DataReponse<boolean>
+  >();
+  historyResult: Subject<DataReponse<HistoryDto>> = new Subject<
+    DataReponse<HistoryDto>
+  >();
+
   constructor(private apiService: ApiService) {}
 
-  performDeposit(command: DepositCommand): Promise<any> {
-    this.checkError(this.isDepositCommandValid, command);
-    return this.apiService.deposit(command);
+  performDeposit(command: DepositCommand) {
+    try {
+      this.checkError(this.isDepositCommandValid, command);
+      this.apiService
+        .deposit(command)
+        .then((foo) => {
+          this.depositResult.next({
+            success: true,
+          });
+        })
+        .catch((error) => {
+          this.depositResult.next({
+            success: false,
+            message: error?.error,
+          });
+        });
+    } catch (error: any) {
+      this.depositResult.next({
+        success: false,
+        message: error?.error,
+      });
+    }
   }
 
-  performWithdraw(command: WithdrawCommand): Promise<any> {
-    this.checkError(this.isWithdrawCommandValid, command);
-    return this.apiService.withdraw(command);
+  performWithdraw(command: WithdrawCommand) {
+    try {
+      this.checkError(this.isWithdrawCommandValid, command);
+      this.apiService
+        .withdraw(command)
+        .then((foo) => {
+          this.withdrawResult.next({
+            success: true,
+          });
+        })
+        .catch((error) => {
+          this.withdrawResult.next({
+            success: false,
+            message: error?.error,
+          });
+        });
+    } catch (error: any) {
+      this.withdrawResult.next({
+        success: false,
+        message: error?.error,
+      });
+    }
   }
 
-  getHistory(command: HistoryCommand): Promise<HistoryDto> {
-    this.checkError(this.isHistoryCommandValid, command);
-    return this.apiService.history(command);
+  getHistory(command: HistoryCommand) {
+    try {
+      this.checkError(this.isHistoryCommandValid, command);
+      this.apiService
+        .history(command)
+        .then((data) => {
+          if (data == undefined || data.transactions.length == 0) {
+            this.historyResult.next({
+              success: true,
+              message: NO_TRANSACTION,
+            });
+          } else {
+            this.historyResult.next({
+              success: true,
+              data,
+            });
+          }
+        })
+        .catch((error) => {
+          this.historyResult.next({
+            success: false,
+            message: error?.error,
+          });
+        });
+    } catch (error: any) {
+      this.historyResult.next({
+        success: false,
+        message: error?.error,
+      });
+    }
   }
 
   private checkError(func: (payload: any) => string | null, payload: any) {

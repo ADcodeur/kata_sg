@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { BusinessService } from 'src/app/services/business.service';
 import {
   ERROR_MESSAGE,
@@ -15,29 +16,28 @@ export class WithdrawComponent
   extends AbstractTransactionComponent
   implements OnInit
 {
+  withdrawSubscription: Subscription;
+
   constructor(businessService: BusinessService) {
     super(businessService);
+
+    this.withdrawSubscription = this.businessService.withdrawResult.subscribe(
+      (result) => {
+        this.errorOccurs = !result.success;
+        this.message = result.success
+          ? WITHDRAW_SUCCESS_MESSAGE
+          : result.message || ERROR_MESSAGE;
+      }
+    );
+    this.subscriptions.add(this.withdrawSubscription);
   }
 
   withdraw() {
-    try {
-      this.message = null;
-      this.errorOccurs = false;
-      this.businessService
-        .performWithdraw({
-          account: this.account.value,
-          amount: this.amount.value,
-        })
-        .then((foo) => {
-          this.message = WITHDRAW_SUCCESS_MESSAGE;
-        })
-        .catch((error) => {
-          this.errorOccurs = true;
-          this.message = error?.error || ERROR_MESSAGE;
-        });
-    } catch (error: any) {
-      this.errorOccurs = true;
-      this.message = error?.error || ERROR_MESSAGE;
-    }
+    this.message = null;
+    this.errorOccurs = false;
+    this.businessService.performWithdraw({
+      account: this.account.value,
+      amount: this.amount.value,
+    });
   }
 }

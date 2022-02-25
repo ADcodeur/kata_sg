@@ -1,11 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { BusinessService } from 'src/app/services/business.service';
-import {
-  ACCOUNT_PH,
-  ERROR_MESSAGE,
-  NO_TRANSACTION,
-} from 'src/app/shared/constants';
+import { ACCOUNT_PH, ERROR_MESSAGE } from 'src/app/shared/constants';
 import { TransactionDto } from 'src/app/shared/model';
 import { getDate } from 'src/app/shared/utils';
 
@@ -14,7 +11,7 @@ import { getDate } from 'src/app/shared/utils';
   templateUrl: './history.component.html',
   styleUrls: ['./history.component.scss'],
 })
-export class HistoryComponent implements OnInit {
+export class HistoryComponent implements OnInit, OnDestroy {
   ACCOUNT_PH = ACCOUNT_PH;
   getDate = getDate;
   message: string | null = null;
@@ -26,35 +23,34 @@ export class HistoryComponent implements OnInit {
   balance: number | null = null;
   transactionList: TransactionDto[] = [];
   errorOccurs: boolean = false;
-  constructor(private businessService: BusinessService) {}
+
+  historySubscription: Subscription;
+
+  constructor(private businessService: BusinessService) {
+    this.historySubscription = this.businessService.historyResult.subscribe(
+      (result) => {
+        this.errorOccurs = !result.success;
+        this.message = result.success
+          ? result.message || null
+          : result.message || ERROR_MESSAGE;
+        this.balance = result.data?.balance || 0;
+        this.transactionList = result.data?.transactions || [];
+      }
+    );
+  }
+  ngOnDestroy(): void {
+    this.historySubscription.unsubscribe();
+  }
 
   ngOnInit(): void {}
 
   getHistory() {
-    try {
-      this.transactionList = [];
-      this.message = null;
-      this.errorOccurs = false;
-      this.businessService
-        .getHistory({
-          account: this.account.value,
-        })
-        .then((data) => {
-          if (data == undefined || data.transactions.length == 0) {
-            this.message = NO_TRANSACTION;
-          } else {
-            this.balance = data.balance;
-            this.transactionList = data.transactions;
-          }
-        })
-        .catch((error) => {
-          console.log(error);
-          this.errorOccurs = true;
-          this.message = error?.error || ERROR_MESSAGE;
-        });
-    } catch (error: any) {
-      this.errorOccurs = true;
-      this.message = error?.error || ERROR_MESSAGE;
-    }
+    this.balance = 0;
+    this.transactionList = [];
+    this.message = null;
+    this.errorOccurs = false;
+    this.businessService.getHistory({
+      account: this.account.value,
+    });
   }
 }

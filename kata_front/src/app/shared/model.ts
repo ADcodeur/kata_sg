@@ -23,4 +23,10 @@ export interface TransactionDto {
   amount: number;
 }
 
+export interface DataReponse<T> {
+  success: boolean;
+  message?: string;
+  data?: T;
+}
+
 export type ACTION = 'DEPOSIT' | 'WITHDRAW';

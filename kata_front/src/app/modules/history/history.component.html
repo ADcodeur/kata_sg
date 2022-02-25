@@ -9,7 +9,7 @@
     </form>
   </div>
   <div id="transaction_history_wrapper">
-    <div *ngIf="balance">
+    <div *ngIf="transactionList.length">
       <p>Balance : {{ balance }}</p>
     </div>
     <div class="transaction_log" *ngFor="let item of transactionList">

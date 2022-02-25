@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { BusinessService } from 'src/app/services/business.service';
 import { ACCOUNT_PH, AMOUNT_PH } from 'src/app/shared/constants';
 
@@ -7,7 +8,11 @@ import { ACCOUNT_PH, AMOUNT_PH } from 'src/app/shared/constants';
   template: '',
   styleUrls: [],
 })
-export abstract class AbstractTransactionComponent implements OnInit {
+export abstract class AbstractTransactionComponent
+  implements OnInit, OnDestroy
+{
+  subscriptions: Subscription = new Subscription();
+
   ACCOUNT_PH = ACCOUNT_PH;
   AMOUNT_PH = AMOUNT_PH;
 
@@ -32,4 +37,8 @@ export abstract class AbstractTransactionComponent implements OnInit {
   }
 
   ngOnInit(): void {}
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+  }
 }
